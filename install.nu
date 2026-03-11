@@ -51,6 +51,7 @@ export def main [
     print "Initializing jj..."
     cd $target_dir
     do { jj git init --colocate } | complete | ignore
+    do { jj bookmark track main --remote=origin } | complete | ignore
     
     # Run sync
     print "Syncing..."
