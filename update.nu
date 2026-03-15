@@ -12,29 +12,10 @@ export def main [
     name?: string  # Plugin name (optional, updates all plugins if omitted)
     --system       # Also update system plugins
 ] {
-    let installed = get-installed
-    
-    let to_update = if ($name | is-not-empty) {
-        $installed | where name == $name
-    } else if $system {
-        $installed
-    } else {
-        $installed | where type == "plugin"
-    }
-    
-    if ($to_update | is-empty) {
-        print "Nothing to update"
-        return
-    }
-    
-    for p in $to_update {
-        try {
-            vcs update $p.dir
-            print $"(style ok 'Updated') ($p.name)"
-        } catch {
-            print $"(style warn 'Failed') ($p.name)"
-        }
-    }
+    get-installed
+    | where { ($name | is-empty) or $in.name == $name }
+    | where { $system or $in.type == "plugin" }
+    | par-each {|p| vcs update $p.dir --track=$PROJECT.track; print $"(style ok 'Updated') ($p.name)" }
     
     sync
 }
