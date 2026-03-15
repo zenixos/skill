@@ -2,41 +2,36 @@
 # description: List installed and available plugins
 
 use lib/plugin-config.nu *
-use lib/plugin-discover.nu *
-use ../lib/style.nu
 use ../lib/vcs.nu
 
-# List installed and available plugins
-export def main [] {
-    let installed = get-installed
-    let available = get-available
-    
-    print (style header "Installed")
-    if ($installed | is-empty) {
-        print "  (none)"
-    } else {
-        let data = $installed | each {|p|
-            let ver = (vcs version $p.dir)
-            let type_badge = match $p.type {
-                "system" => (style category "system")
-                _ => (style category "plugin")
-            }
-            { category: $type_badge, name: $p.name, description: (style dim $ver) }
+# Get installed plugins with version
+export def get-installed [] {
+    ["system", "plugin"] | each {|type|
+        ls ($ROOT_DIR | path join $type)
+        | where type == "dir"
+        | each {
+            let name = ($in.name | path basename)
+            let dir = ($ROOT_DIR | path join $type $name)
+            { name: $name, type: $type, version: (vcs version $dir) }
         }
-        style catalog $data
-    }
+    } | flatten
+    | where { $in.version != "unknown" }
+}
+
+# Format output: installed first, system first, then by name
+def format-output [] {
+    sort-by name | sort-by type -r | sort-by status -r | select name status type version
+}
+
+# List all plugins
+export def main [] {
+    let installed = get-installed | each { $in | insert status "installed" }
     
-    print ""
-    print (style header "Available")
-    let installed_names = ($installed | get name)
-    let exclude = ["zenix" "xenix" "system"]  # Meta repos, not plugins
-    let not_installed = ($available 
-        | where {|n| $n not-in $installed_names }
-        | where {|n| $n not-in $exclude })
-    if ($not_installed | is-empty) {
-        print "  (all installed)"
-    } else {
-        $not_installed | each {|n| print $"  ($n)" }
-        null
-    }
+    let available = vcs list-repos $GITHUB_ORG
+    | where { $in.name not-in ($installed | get name) }
+    | each { $in | insert type "plugin" | insert status "available" }
+    
+    $installed 
+    | append $available
+    | format-output
 }

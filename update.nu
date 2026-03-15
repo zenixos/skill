@@ -2,7 +2,7 @@
 # description: Update plugins
 
 use lib/plugin-config.nu *
-use lib/plugin-discover.nu *
+use list.nu [get-installed]
 use ../lib/style.nu
 use ../lib/vcs.nu
 
@@ -28,8 +28,9 @@ export def main [
     
     for p in $to_update {
         print $"Updating ($p.name)..."
+        let dir = ($ROOT_DIR | path join $p.type $p.name)
         try {
-            vcs update $p.dir
+            vcs update $dir
             print $"  (style ok 'Updated')"
         } catch {
             print $"  (style warn 'Failed to update')"

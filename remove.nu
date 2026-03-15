@@ -2,7 +2,7 @@
 # description: Remove a plugin
 
 use lib/plugin-config.nu *
-use lib/plugin-discover.nu *
+use list.nu [get-installed]
 use ../lib/style.nu
 
 # Remove a plugin
@@ -28,7 +28,8 @@ export def main [
     }
     
     print $"Removing ($name)..."
-    rm -rf $plugin.dir
+    let dir = ($ROOT_DIR | path join $plugin.type $plugin.name)
+    rm -rf $dir
     
     # Run sync
     print "Syncing..."

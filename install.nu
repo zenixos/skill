@@ -2,7 +2,7 @@
 # description: Install a plugin
 
 use lib/plugin-config.nu *
-use lib/plugin-discover.nu *
+use list.nu [get-installed]
 use ../lib/style.nu
 use ../lib/vcs.nu
 
