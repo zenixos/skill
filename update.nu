@@ -28,11 +28,11 @@ export def main [
     
     for p in $to_update {
         print $"Updating ($p.name)..."
-        let result = (vcs update $p.dir)
-        if $result.success {
+        try {
+            vcs update $p.dir
             print $"  (style ok 'Updated')"
-        } else {
-            print $"  (style warn 'Warning'): ($result.error)"
+        } catch {
+            print $"  (style warn 'Failed to update')"
         }
     }
     

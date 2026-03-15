@@ -28,16 +28,16 @@ export def main [
     }
     
     let target_dir = ($PLUGIN_DIR | path join $plugin_name)
-    let repo_url = $"https://github.com/($GITHUB_ORG)/($plugin_name).git"
+    let repo = $"($GITHUB_ORG)/($plugin_name)"
     
     mkdir $PLUGIN_DIR
     
     print $"Installing ($plugin_name)..."
     try {
         if ($version | is-not-empty) {
-            vcs clone $repo_url $target_dir --branch $version
+            vcs clone $repo $target_dir --tag $version --track
         } else {
-            vcs clone $repo_url $target_dir
+            vcs clone $repo $target_dir --track
         }
     } catch {|err|
         print $"(style err 'Error'): ($err.msg)"
