@@ -35,12 +35,9 @@ export def main [] {
     
     # Installed (instant)
     print (style header "Installed")
-    if ($installed | is-empty) {
-        print "  (none)"
-    } else {
-        $installed | each {|s|
-            print (format-skill $s.name (style dim $s.version) $pad)
-        }
+    match ($installed | is-empty) {
+        true => { print "  (none)" }
+        false => { $installed | each {|s| print (format-skill $s.name (style dim $s.version) $pad) } }
     }
     
     # Fetch remote (progressive)
