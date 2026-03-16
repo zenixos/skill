@@ -9,13 +9,17 @@ use ../lib/vcs.nu
 
 # Update skills
 export def main [
-    name?: string  # Skill name (optional, updates all skills if omitted)
-    --system       # Also update system skills
+    ...names: string  # Skill names (updates all if omitted)
+    --system          # Also update system skills
 ] {
-    skill-discover
-    | where { ($name | is-empty) or $in.name == $name }
-    | where { $system or $in.type == "plugin" }
-    | each {|s|
+    let installed = skill-discover
+    let to_update = if ($names | is-empty) {
+        $installed | where { $system or $in.type == "plugin" }
+    } else {
+        $installed | where { $in.name in $names }
+    }
+    
+    $to_update | each {|s|
         vcs update $s.dir --track=$PROJECT.track
         print $"(style ok 'Updated') ($s.name)"
     }
