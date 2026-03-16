@@ -6,15 +6,12 @@ use lib/plugin-discover.nu
 use ../lib/vcs.nu
 use ../lib/style.nu
 
-# List all plugins
-export def main [] {
-    let installed = plugin-discover
-    
+def print-installed [plugins: list] {
     print (style header "Installed")
-    if ($installed | is-empty) {
+    if ($plugins | is-empty) {
         print "  (none)"
     } else {
-        let data = $installed | each {|p|
+        let data = $plugins | each {|p|
             { 
                 category: (style category $p.type)
                 name: $p.name
@@ -23,19 +20,28 @@ export def main [] {
         }
         style catalog $data
     }
-    
-    print ""
+}
+
+def print-available [plugins: list] {
     print (style header "Available")
-    let installed_names = ($installed | get name)
+    if ($plugins | is-empty) {
+        print "  (all installed)"
+    } else {
+        $plugins | each {|p| print $"  ($p.name)" }
+        null
+    }
+}
+
+# List all plugins
+export def main [] {
+    let installed = plugin-discover
+    let installed_names = $installed | get name
     let exclude = ["zenix" "xenix" "system"]
     let available = vcs list-repos $GITHUB_ORG
         | where {|r| $r.name not-in $installed_names }
         | where {|r| $r.name not-in $exclude }
     
-    if ($available | is-empty) {
-        print "  (all installed)"
-    } else {
-        $available | each {|r| print $"  ($r.name)" }
-        null
-    }
+    print-installed $installed
+    print ""
+    print-available $available
 }
