@@ -8,17 +8,18 @@ use ../lib/style.nu
 
 def format-output [plugins: list, header: string, empty_msg: string] {
     print (style header $header)
-    if ($plugins | is-empty) {
-        print $"  ($empty_msg)"
-    } else {
-        let data = $plugins | each {|p|
-            { 
-                category: (style category $p.type)
-                name: $p.name
-                description: (style dim ($p.version? | default ""))
+    match ($plugins | is-empty) {
+        true => { print $"  ($empty_msg)" }
+        false => {
+            let data = $plugins | each {|p|
+                { 
+                    category: (style category $p.type)
+                    name: $p.name
+                    description: (style dim ($p.version? | default ""))
+                }
             }
+            style catalog $data
         }
-        style catalog $data
     }
 }
 
