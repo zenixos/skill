@@ -7,10 +7,9 @@ use ../lib/vcs.nu
 use ../lib/style.nu
 
 # Format skill line with aligned columns
-def format-skill [name: string, type: string, version: string, pad: int] {
-    let type_pad = "" | fill -c ' ' -w (6 - ($type | str length))
+def format-skill [name: string, version: string, pad: int] {
     let name_pad = "" | fill -c ' ' -w ($pad - ($name | str length))
-    $"  ($type)($type_pad) | ($name)($name_pad)($version)"
+    $"  ($name)($name_pad)($version)"
 }
 
 # Get xenix version from VERSION file
@@ -40,7 +39,7 @@ export def main [] {
         print "  (none)"
     } else {
         $installed | each {|s|
-            print (format-skill $s.name $s.type (style dim $s.version) $pad)
+            print (format-skill $s.name (style dim $s.version) $pad)
         }
     }
     
@@ -61,8 +60,7 @@ export def main [] {
         let avail_pad = [($avail_pad + 2) $pad] | math max
         
         $available | each {|r|
-            let type = if $r.name in $CORE_SKILLS { "system" } else { "plugin" }
-            print (format-skill $r.name $type (style dim $r.version) $avail_pad)
+            print (format-skill $r.name (style dim $r.version) $avail_pad)
         }
     }
     
