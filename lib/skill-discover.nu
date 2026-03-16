@@ -8,12 +8,18 @@ def get-version [dir: string] {
     try { open ($dir | path join "VERSION") | str trim } catch { "" }
 }
 
-# Get description from SKILL.md if exists
-def get-description [dir: string] {
+# Get metadata from SKILL.md if exists
+def get-skill-meta [dir: string] {
     let skill_file = $dir | path join "SKILL.md"
     if ($skill_file | path exists) {
-        (md parse $skill_file).meta | get -o description | default ""
-    } else { "" }
+        let meta = (md parse $skill_file).meta
+        {
+            description: ($meta | get -o description | default "")
+            system: ($meta | get -o system | default "")
+        }
+    } else {
+        { description: "", system: "" }
+    }
 }
 
 # List command files in a skill (excludes mod.nu)
@@ -33,13 +39,15 @@ export def main [] {
         | each {
             let dir = $in.name
             let name = $dir | path basename
+            let meta = get-skill-meta $dir
             {
                 name: $name
                 type: $type
                 dir: $dir
                 version: (get-version $dir)
+                system: $meta.system
                 has_mod: ($dir | path join "mod.nu" | path exists)
-                description: (get-description $dir)
+                description: $meta.description
                 commands: (list-commands $dir)
             }
         }

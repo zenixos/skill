@@ -7,14 +7,23 @@ use ../lib/vcs.nu
 use ../lib/style.nu
 
 # Format skill line with aligned columns
-def format-skill [name: string, version: string, pad: int] {
+def format-skill [name: string, version: string, pad: int, warn?: string] {
     let name_pad = "" | fill -c ' ' -w ($pad - ($name | str length))
-    $"  ($name)($name_pad)($version)"
+    let warning = if ($warn | is-empty) { "" } else { $" (style warn $warn)" }
+    $"  ($name)($name_pad)($version)($warning)"
 }
 
 # Get xenix version from VERSION file
 def xenix-version [] {
     try { open ($ROOT_DIR | path join "VERSION") | str trim } catch { "" }
+}
+
+# Compare versions (returns true if v1 < v2)
+def version-lt [v1: string, v2: string] {
+    let parse = {|v| $v | str replace "v" "" | split row "." | each { into int } }
+    let a = do $parse $v1
+    let b = do $parse $v2
+    ($a.0 < $b.0) or ($a.0 == $b.0 and $a.1 < $b.1) or ($a.0 == $b.0 and $a.1 == $b.1 and $a.2 < $b.2)
 }
 
 # List all skills with progressive output
@@ -38,8 +47,12 @@ export def main [] {
     if ($installed | is-empty) {
         print "  (none)"
     } else {
+        let current_ver = $ver
         $installed | each {|s|
-            print (format-skill $s.name (style dim $s.version) $pad)
+            let warn = if ($s.system | is-not-empty) and ($current_ver | is-not-empty) and (version-lt $current_ver $s.system) {
+                $"requires ($s.system)"
+            } else { "" }
+            print (format-skill $s.name (style dim $s.version) $pad $warn)
         }
     }
     
