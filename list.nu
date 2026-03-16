@@ -8,9 +8,9 @@ use ../lib/style.nu
 
 # Format skill line with aligned columns
 def format-skill [name: string, type: string, version: string, pad: int] {
-    let type_name = $"\(($type)\) ($name)"
-    let padding = "" | fill -c ' ' -w ($pad - ($type_name | str length))
-    $"  ($type_name)($padding)($version)"
+    let type_pad = "" | fill -c ' ' -w (6 - ($type | str length))
+    let name_pad = "" | fill -c ' ' -w ($pad - ($name | str length))
+    $"  ($type)($type_pad) | ($name)($name_pad)($version)"
 }
 
 # Get xenix version from VERSION file
@@ -25,7 +25,7 @@ export def main [] {
     let exclude = ["zenix" "xenix" "system"]
     
     # Calculate padding for alignment
-    let max_len = $installed | each {|s| $"\(($s.type)\) ($s.name)" | str length } | math max | default 20
+    let max_len = $installed | each {|s| $s.name | str length } | math max | default 20
     let pad = $max_len + 2
     
     # Header with xenix version
@@ -57,10 +57,7 @@ export def main [] {
     if ($available | is-not-empty) {
         print ""
         print (style header "Available")
-        let avail_pad = $available | each {|r| 
-            let type = if $r.name in $CORE_SKILLS { "system" } else { "plugin" }
-            $"\(($type)\) ($r.name)" | str length 
-        } | math max | default 20
+        let avail_pad = $available | each {|r| $r.name | str length } | math max | default 20
         let avail_pad = [($avail_pad + 2) $pad] | math max
         
         $available | each {|r|
