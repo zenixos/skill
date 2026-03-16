@@ -17,6 +17,11 @@ export def main [
         return
     }
     
+    if $skill.type == "system" {
+        print $"(style err 'Error'): cannot remove system skill '($name)'"
+        return
+    }
+    
     cd $ROOT_DIR
     rm -rf $skill.dir
     sync
